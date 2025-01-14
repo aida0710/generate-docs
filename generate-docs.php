@@ -7,6 +7,8 @@ class DocusaurusContentGenerator
     private string $sourceDir;
     private string $docsDir;
     private array $processedFiles = [];
+    private int $totalFiles = 0;
+    private int $processedCount = 0;
 
     public function __construct(string $sourceDir, string $docsDir)
     {
@@ -25,8 +27,15 @@ class DocusaurusContentGenerator
         }
 
         $this->processedFiles = [];
+        $this->processedCount = 0;
+
+        // 総ファイル数をカウント
+        $this->totalFiles = $this->countFiles($this->sourceDir);
+        echo "変換対象: {$this->totalFiles} ファイル\n";
+
         $this->processDirectory($this->sourceDir);
         $this->generateDirectoryStructure();
+        echo "\n完了しました！\n";
     }
 
     private function processDirectory(string $currentDir, int $depth = 0): void
@@ -64,6 +73,8 @@ class DocusaurusContentGenerator
                 ];
                 $targetPath = $this->getTargetPath($relativePath);
                 $this->processFile($sourcePath, $this->docsDir . '/' . $targetPath, $position);
+                $this->processedCount++;
+                $this->showProgress();
             }
         }
 
@@ -86,6 +97,34 @@ class DocusaurusContentGenerator
         // 拡張子付きのファイル名を生成（例: main.c.md）
         $newFileName = $extension ? "{$fileName}.{$extension}.md" : "{$fileName}.md";
         return ($baseDir === '.' ? '' : $baseDir . '/') . $newFileName;
+    }
+
+    private function countFiles(string $dir): int
+    {
+        $count = 0;
+        $items = scandir($dir);
+
+        foreach ($items as $item) {
+            if ($item === '.' || $item === '..' || $item === '_category_.json') {
+                continue;
+            }
+
+            $path = $dir . '/' . $item;
+            if (is_dir($path)) {
+                $count += $this->countFiles($path);
+            } else {
+                $count++;
+            }
+        }
+
+        return $count;
+    }
+
+    private function showProgress(): void
+    {
+        $percent = ($this->processedCount / $this->totalFiles) * 100;
+        $bar = str_repeat('=', (int)($percent / 2)) . str_repeat(' ', 50 - (int)($percent / 2));
+        echo sprintf("\r[%s] %.1f%% (%d/%d)", $bar, $percent, $this->processedCount, $this->totalFiles);
     }
 
     private function processFile(string $sourcePath, string $targetPath, int $position): void
