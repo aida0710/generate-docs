@@ -156,15 +156,21 @@ class DocusaurusContentGenerator
     {
         $content = "# プロジェクト構造\n\n";
         $content .= "### ディレクトリ階層\n\n";
-        $content .= "```\n";
 
         foreach ($this->processedFiles as $item) {
             $indent = str_repeat("  ", $item['depth']);
             $marker = $item['type'] === 'directory' ? '📁 ' : '📄 ';
-            $content .= $indent . $marker . basename($item['path']) . "\n";
-        }
+            $path = $item['path'];
+            $name = basename($path);
 
-        $content .= "```\n";
+            // ディレクトリへのリンクを生成
+            $relativePath = str_repeat('../', $item['depth']);
+            $displayPath = $marker . ($item['type'] === 'directory'
+                    ? "[{$name}]({$relativePath}{$path}/)"
+                    : "[{$name}]({$relativePath}{$path}.md)");
+
+            $content .= $indent . $displayPath . "\n";
+        }
 
         $frontmatter = $this->generateFrontmatter(0);
         $finalContent = $frontmatter . $content;
