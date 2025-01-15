@@ -155,9 +155,18 @@ class DocusaurusContentGenerator {
             $path = $item['path'];
             $name = basename($path);
 
-            $displayPath = "- " . $marker . ($item['type'] === 'directory'
-                    ? "[{$name}](/docs/{$path}/)"
-                    : "[{$name}](/docs/{$path}.md)");
+            if ($item['type'] === 'file' && str_starts_with($name, '.')) {
+                $name = 'dotfiles-' . substr($name, 1);
+            }
+
+            if ($item['type'] === 'directory') {
+                $displayPath = "- " . $marker . "[{$name}](/docs/{$path}/)";
+            } else {
+                $linkPath = str_starts_with(basename($path), '.')
+                    ? dirname($path) . '/dotfiles-' . substr(basename($path), 1)
+                    : $path;
+                $displayPath = "- " . $marker . "[{$name}](/docs/{$linkPath}.md)";
+            }
 
             $content .= $indent . $displayPath . "\n";
         }
