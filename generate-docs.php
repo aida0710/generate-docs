@@ -155,7 +155,6 @@ class DocusaurusContentGenerator {
             $path = $item['path'];
             $name = basename($path);
 
-            // Generate absolute paths instead of relative paths
             $displayPath = $marker . ($item['type'] === 'directory'
                     ? "[{$name}](/docs/{$path}/)"
                     : "[{$name}](/docs/{$path}.md)");
