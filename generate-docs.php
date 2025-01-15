@@ -1,23 +1,21 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
-class DocusaurusContentGenerator
-{
+class DocusaurusContentGenerator {
+
     private string $sourceDir;
     private string $docsDir;
     private array $processedFiles = [];
     private int $totalFiles = 0;
     private int $processedCount = 0;
 
-    public function __construct(string $sourceDir, string $docsDir)
-    {
+    public function __construct(string $sourceDir, string $docsDir) {
         $this->sourceDir = rtrim($sourceDir, '/');
         $this->docsDir = rtrim($docsDir, '/');
     }
 
-    public function generate(): void
-    {
+    public function generate(): void {
         if (!is_dir($this->sourceDir)) {
             throw new RuntimeException("Source directory does not exist: {$this->sourceDir}");
         }
@@ -38,8 +36,7 @@ class DocusaurusContentGenerator
         echo "\n完了しました！\n";
     }
 
-    private function processDirectory(string $currentDir, int $depth = 0): void
-    {
+    private function processDirectory(string $currentDir, int $depth = 0): void {
         $items = scandir($currentDir);
         $position = 0;
 
@@ -61,7 +58,7 @@ class DocusaurusContentGenerator
                 $this->processedFiles[] = [
                     'type' => 'directory',
                     'path' => $relativePath,
-                    'depth' => $depth
+                    'depth' => $depth,
                 ];
                 $this->processDirectory($sourcePath, $depth + 1);
             } else {
@@ -69,7 +66,7 @@ class DocusaurusContentGenerator
                 $this->processedFiles[] = [
                     'type' => 'file',
                     'path' => $relativePath,
-                    'depth' => $depth
+                    'depth' => $depth,
                 ];
                 $targetPath = $this->getTargetPath($relativePath);
                 $this->processFile($sourcePath, $this->docsDir . '/' . $targetPath, $position);
@@ -81,8 +78,7 @@ class DocusaurusContentGenerator
         $this->generateCategoryFile($currentDir, $depth);
     }
 
-    private function getTargetPath(string $relativePath): string
-    {
+    private function getTargetPath(string $relativePath): string {
         $info = pathinfo($relativePath);
         $fileName = $info['filename'];
         $extension = $info['extension'] ?? '';
@@ -99,8 +95,7 @@ class DocusaurusContentGenerator
         return ($baseDir === '.' ? '' : $baseDir . '/') . $newFileName;
     }
 
-    private function countFiles(string $dir): int
-    {
+    private function countFiles(string $dir): int {
         $count = 0;
         $items = scandir($dir);
 
@@ -120,15 +115,13 @@ class DocusaurusContentGenerator
         return $count;
     }
 
-    private function showProgress(): void
-    {
+    private function showProgress(): void {
         $percent = ($this->processedCount / $this->totalFiles) * 100;
-        $bar = str_repeat('=', (int)($percent / 2)) . str_repeat(' ', 50 - (int)($percent / 2));
+        $bar = str_repeat('=', (int) ($percent / 2)) . str_repeat(' ', 50 - (int) ($percent / 2));
         echo sprintf("\r[%s] %.1f%% (%d/%d)", $bar, $percent, $this->processedCount, $this->totalFiles);
     }
 
-    private function processFile(string $sourcePath, string $targetPath, int $position): void
-    {
+    private function processFile(string $sourcePath, string $targetPath, int $position): void {
         $content = file_get_contents($sourcePath);
         $originalName = basename($sourcePath);
         $extension = pathinfo($sourcePath, PATHINFO_EXTENSION) ?: 'txt';
@@ -152,8 +145,7 @@ class DocusaurusContentGenerator
         file_put_contents($targetPath, $finalContent);
     }
 
-    private function generateDirectoryStructure(): void
-    {
+    private function generateDirectoryStructure(): void {
         $content = "# プロジェクト構造\n\n";
         $content .= "### ディレクトリ階層\n\n";
 
@@ -163,11 +155,10 @@ class DocusaurusContentGenerator
             $path = $item['path'];
             $name = basename($path);
 
-            // ディレクトリへのリンクを生成
-            $relativePath = str_repeat('../', $item['depth']);
+            // Generate absolute paths instead of relative paths
             $displayPath = $marker . ($item['type'] === 'directory'
-                    ? "[{$name}]({$relativePath}{$path}/)"
-                    : "[{$name}]({$relativePath}{$path}.md)");
+                    ? "[{$name}](/docs/{$path}/)"
+                    : "[{$name}](/docs/{$path}.md)");
 
             $content .= $indent . $displayPath . "\n";
         }
@@ -178,8 +169,7 @@ class DocusaurusContentGenerator
         file_put_contents($this->docsDir . '/structure.md', $finalContent);
     }
 
-    private function generateFrontmatter(int $position): string
-    {
+    private function generateFrontmatter(int $position): string {
         return <<<EOT
 ---
 sidebar_position: {$position}
@@ -188,8 +178,7 @@ sidebar_position: {$position}
 EOT;
     }
 
-    private function generateCategoryFile(string $dirPath, int $depth): void
-    {
+    private function generateCategoryFile(string $dirPath, int $depth): void {
         if ($dirPath === $this->sourceDir) {
             return;
         }
@@ -203,23 +192,22 @@ EOT;
             'position' => $depth * 100,
             'link' => [
                 'type' => 'generated-index',
-                'description' => "Documentation for " . ucwords(str_replace(['-', '_'], ' ', $dirName))
-            ]
+                'description' => "Documentation for " . ucwords(str_replace(['-', '_'], ' ', $dirName)),
+            ],
         ];
 
         file_put_contents($targetPath, json_encode($category, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     }
 
-    private function getRelativePath(string $path): string
-    {
+    private function getRelativePath(string $path): string {
         return substr($path, strlen($this->sourceDir) + 1);
     }
 }
 
 try {
     $generator = new DocusaurusContentGenerator(
-        './input',
-        './output'
+        'C:\Users\aida0\PhpstormProjects\linux',
+        'C:\Users\aida0\PhpstormProjects\linux-kernel-explorer\docs\linux-v6.12',
     );
     $generator->generate();
     echo "コンテンツの生成が完了しました！\n";
