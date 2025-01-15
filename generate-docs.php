@@ -155,11 +155,11 @@ class DocusaurusContentGenerator {
             $path = $item['path'];
             $name = basename($path);
 
-            $displayPath = $marker . ($item['type'] === 'directory'
+            $displayPath = "- " . $marker . ($item['type'] === 'directory'
                     ? "[{$name}](/docs/{$path}/)"
                     : "[{$name}](/docs/{$path}.md)");
 
-            $content .= "- ". $indent . $displayPath . "\n";
+            $content .= $indent . $displayPath . "\n";
         }
 
         $frontmatter = $this->generateFrontmatter(0);
